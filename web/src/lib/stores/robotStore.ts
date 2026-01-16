@@ -21,12 +21,12 @@ export interface AnalysisResult {
 }
 
 export interface LogEntry {
-    timestamp: string;
-    data: RobotSettings | null;
-    analysis: {
-        status: string | null;
-        insights: string[];
-    };
+  timestamp: string;
+  data: RobotSettings | null;
+  analysis: {
+    status: string | null;
+    insights: string[];
+  };
 }
 
 // 初期値
@@ -36,20 +36,24 @@ const initialState: RobotSettings = {
   roll: 1.8,
   startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString().slice(0, 16), // 2時間前
   stopTime: new Date().toISOString().slice(0, 16),
-  route: JSON.stringify([
-    {
-      latitude: 35.6812,
-      longitude: 139.7671,
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      latitude: 35.6815,
-      longitude: 139.7673,
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000 + 20 * 60000).toISOString()
-    }
-  ], null, 2),
+  route: JSON.stringify(
+    [
+      {
+        latitude: 35.6812,
+        longitude: 139.7671,
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        latitude: 35.6815,
+        longitude: 139.7673,
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000 + 20 * 60000).toISOString(),
+      },
+    ],
+    null,
+    2,
+  ),
   anomalyCode: '',
-  anomalyDetails: ''
+  anomalyDetails: '',
 };
 
 // ロボット設定ストア
@@ -65,5 +69,5 @@ export const analysisResult: Writable<AnalysisResult> = writable({
   data: null,
   status: null,
   insights: [],
-  recommendations: []
+  recommendations: [],
 });

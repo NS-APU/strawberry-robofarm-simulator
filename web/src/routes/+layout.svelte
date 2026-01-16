@@ -1,12 +1,13 @@
 <script>
-	import { onMount } from 'svelte';
-	import { configureAmplify } from '$lib/amplify';
+  import { onMount } from 'svelte';
+  import { configureAmplify } from '$lib/amplify';
+  import '../app.css';
 
-	onMount(() => {
-		configureAmplify();
-	});
+  onMount(() => {
+    configureAmplify();
+  });
 </script>
 
 <main>
-	<slot />
+  <slot />
 </main>

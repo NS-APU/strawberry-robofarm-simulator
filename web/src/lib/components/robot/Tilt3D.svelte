@@ -5,7 +5,7 @@
 
   let canvas: HTMLCanvasElement;
   let container: HTMLDivElement;
-  
+
   let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, platform: THREE.Group;
   let isDragging = false;
   let previousMousePosition = { x: 0, y: 0 };
@@ -27,7 +27,7 @@
     initThree();
     setupEventListeners();
     animate();
-    
+
     const resizeObserver = new ResizeObserver(() => onWindowResize());
     resizeObserver.observe(container);
 
@@ -89,7 +89,7 @@
 
     platform = group;
     scene.add(group);
-    
+
     // Initial sync
     updatePlatformRotation($robotSettings.pitch, $robotSettings.roll);
   }
@@ -97,7 +97,7 @@
   function animate() {
     animationId = requestAnimationFrame(animate);
     if (renderer && scene && camera) {
-        renderer.render(scene, camera);
+      renderer.render(scene, camera);
     }
   }
 
@@ -126,18 +126,22 @@
       newRoll = Math.max(-90, Math.min(90, newRoll));
       newPitch = Math.max(-90, Math.min(90, newPitch));
 
-      robotSettings.update(s => ({ ...s, roll: parseFloat(newRoll.toFixed(1)), pitch: parseFloat(newPitch.toFixed(1)) }));
+      robotSettings.update((s) => ({
+        ...s,
+        roll: parseFloat(newRoll.toFixed(1)),
+        pitch: parseFloat(newPitch.toFixed(1)),
+      }));
 
       previousMousePosition = { x: e.clientX, y: e.clientY };
     });
 
     window.addEventListener('mouseup', () => {
-        isDragging = false;
+      isDragging = false;
     });
   }
 
   function resetTilt() {
-    robotSettings.update(s => ({ ...s, pitch: 0, roll: 0 }));
+    robotSettings.update((s) => ({ ...s, pitch: 0, roll: 0 }));
   }
 </script>
 
@@ -145,17 +149,15 @@
   <canvas id="tilt3DCanvas" bind:this={canvas}></canvas>
   <div class="tilt-values">
     <div class="tilt-value-item">
-        <span class="tilt-label">Pitch:</span>
-        <span class="tilt-value">{$robotSettings.pitch}°</span>
+      <span class="tilt-label">Pitch:</span>
+      <span class="tilt-value">{$robotSettings.pitch}°</span>
     </div>
     <div class="tilt-value-item">
-        <span class="tilt-label">Roll:</span>
-        <span class="tilt-value">{$robotSettings.roll}°</span>
+      <span class="tilt-label">Roll:</span>
+      <span class="tilt-value">{$robotSettings.roll}°</span>
     </div>
   </div>
-  <button type="button" class="btn btn-sm btn-outline-secondary reset-tilt-btn" on:click={resetTilt}>
-    リセット
-  </button>
+  <button type="button" class="btn btn-sm btn-outline-secondary reset-tilt-btn" on:click={resetTilt}> リセット </button>
 </div>
 
 <style>

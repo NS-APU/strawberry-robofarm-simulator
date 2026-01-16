@@ -1,0 +1,15 @@
+# Build outputs
+/build
+/.svelte-kit
+/package
+
+# Dependencies
+node_modules
+
+# Generated files
+*.config.js.timestamp-*
+*.config.ts.timestamp-*
+
+# Environment files
+.env
+.env.*

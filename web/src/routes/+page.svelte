@@ -9,18 +9,10 @@
 </svelte:head>
 
 <SimulatorLayout>
-  <div slot="left" style="height: 100%;">
-      <RobotControlPanel />
+  <div slot="left" class="h-full">
+    <RobotControlPanel />
   </div>
-  <div slot="right" style="height: 100%;">
-      <AnalysisPanel />
+  <div slot="right" class="h-full">
+    <AnalysisPanel />
   </div>
 </SimulatorLayout>
-
-<style>
-  :global(body) {
-      margin: 0;
-      padding: 0;
-      overflow: hidden; /* Prevent body scroll used by layout resizing */
-  }
-</style>

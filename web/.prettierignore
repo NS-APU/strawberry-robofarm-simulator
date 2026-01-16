@@ -1,0 +1,14 @@
+# Build outputs
+/build
+/.svelte-kit
+/package
+
+# Dependencies
+node_modules
+
+# Environment files
+.env
+.env.*
+
+# Cache
+.eslintcache
