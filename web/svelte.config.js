@@ -11,14 +11,14 @@ const config = {
       strict: true,
     }),
     files: {
-      assets: "web/static",
+      assets: "static",
       hooks: {
-        client: "web/src/hooks.client",
-        server: "web/src/hooks.server",
+        client: "src/hooks.client",
+        server: "src/hooks.server",
       },
-      lib: "web/src/lib",
-      routes: "web/src/routes",
-      appTemplate: "web/src/app.html",
+      lib: "src/lib",
+      routes: "src/routes",
+      appTemplate: "src/app.html",
     },
   },
 };
