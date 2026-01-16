@@ -1,41 +1,26 @@
-<script>
-	import { signIn, signOut, getCurrentUser } from 'aws-amplify/auth';
-	import { onMount } from 'svelte';
-
-	let user = null;
-	let isLoading = true;
-
-	onMount(async () => {
-		try {
-			user = await getCurrentUser();
-		} catch {
-			user = null;
-		}
-		isLoading = false;
-	});
-
-	async function handleSignOut() {
-		await signOut();
-		user = null;
-	}
+<script lang="ts">
+  import SimulatorLayout from '$lib/components/robot/SimulatorLayout.svelte';
+  import RobotControlPanel from '$lib/components/robot/RobotControlPanel.svelte';
+  import AnalysisPanel from '$lib/components/robot/AnalysisPanel.svelte';
 </script>
 
-<h1>Strawberry RoboFarm Simulator</h1>
+<svelte:head>
+  <title>ロボットシミュレーター - 農業情報基盤連携</title>
+</svelte:head>
 
-{#if isLoading}
-	<p>Loading...</p>
-{:else if user}
-	<p>Welcome, {user.username}!</p>
-	<button on:click={handleSignOut}>Sign Out</button>
-{:else}
-	<p>Please sign in to continue.</p>
-	<a href="/auth">Go to Sign In</a>
-{/if}
+<SimulatorLayout>
+  <div slot="left" style="height: 100%;">
+      <RobotControlPanel />
+  </div>
+  <div slot="right" style="height: 100%;">
+      <AnalysisPanel />
+  </div>
+</SimulatorLayout>
 
 <style>
-	h1 {
-		color: #ff3e00;
-		font-size: 2.5rem;
-		margin-bottom: 2rem;
-	}
+  :global(body) {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Prevent body scroll used by layout resizing */
+  }
 </style>
