@@ -84,7 +84,7 @@
   >
     <div class="flex items-center gap-3">
       <span class="text-xl">⏳</span>
-      <span class="font-medium">ロボットからのデータを待機中...</span>
+      <span class="font-medium">データを待機中...</span>
     </div>
   </div>
 {:else}

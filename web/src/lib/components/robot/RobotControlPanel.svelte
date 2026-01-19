@@ -176,7 +176,7 @@
     <button
       type="button"
       class="btn btn-primary w-auto px-8 transform shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-      on:click={handleSend}>📤 分析サービスへ送信</button
+      on:click={handleSend}>📤 データを送信</button
     >
   </div>
 </div>
