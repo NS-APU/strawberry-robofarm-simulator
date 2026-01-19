@@ -1,111 +1,205 @@
 <script lang="ts">
-  import { robotSettings, analysisResult } from '../../stores/robotStore';
+  import { robotSettings, analysisResult, isAnalysisPanelOpen, STATUS_CODES } from '../../stores/robotStore';
   import Tilt3D from './Tilt3D.svelte';
 
+  import { submitAnalysisData } from '../../logic/analysisService';
+
   function handleSend() {
-    // Mock Sending Data
-    analysisResult.update((s) => ({ ...s, waiting: true, data: null }));
+    isAnalysisPanelOpen.set(true);
+    analysisResult.update((s) => ({ ...s, waiting: true }));
 
     setTimeout(() => {
-      analysisResult.update((s) => ({
-        waiting: false,
-        data: $robotSettings,
-        status: $robotSettings.anomalyCode ? 'warning' : 'normal',
-        insights: $robotSettings.anomalyCode
-          ? ['異常データ検出: ' + $robotSettings.anomalyCode]
-          : ['正常稼働中', 'バッテリー効率良好'],
-        recommendations: $robotSettings.anomalyCode ? ['オペレーター確認推奨', 'メンテナンスログ記録'] : ['特になし'],
-      }));
-    }, 1000);
+      submitAnalysisData($robotSettings, undefined);
+    }, 500);
   }
 </script>
 
-<div class="mb-3">
-  <label class="form-label" for="speed">走行速度 (km/h)</label>
-  <input type="number" class="form-control" id="speed" step="0.1" bind:value={$robotSettings.speed} required />
-</div>
+<div class="flex h-full flex-col">
+  <div class="flex-1 overflow-y-auto p-4">
+    <!-- ステータス設定 Section (Moved to Top) -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">ステータス設定</h3>
 
-<div class="mb-3">
-  <label class="form-label" for="tilt3D">傾き調整 (3Dビュー)</label>
-  <Tilt3D />
-  <small class="form-text text-muted">ドラッグして傾きを調整できます</small>
-</div>
+      <div class="mb-3">
+        <label class="form-label" for="statusCode">ステータスコード</label>
+        <select 
+          class="form-select" 
+          id="statusCode" 
+          value={$robotSettings.statusCode}
+          on:change={(e) => robotSettings.setStatusCode(e.currentTarget.value)}
+        >
+          <optgroup label="正常系">
+            {#each STATUS_CODES.NORMAL as status}
+              <option value={status.code}>{status.code}: {status.label}</option>
+            {/each}
+          </optgroup>
+          <optgroup label="走行系異常">
+            {#each STATUS_CODES.RUNNING as status}
+              <option value={status.code}>{status.code}: {status.label}</option>
+            {/each}
+          </optgroup>
+           <optgroup label="収穫系異常">
+            {#each STATUS_CODES.HARVEST as status}
+              <option value={status.code}>{status.code}: {status.label}</option>
+            {/each}
+          </optgroup>
+           <optgroup label="バッテリー系異常">
+            {#each STATUS_CODES.BATTERY as status}
+              <option value={status.code}>{status.code}: {status.label}</option>
+            {/each}
+          </optgroup>
+        </select>
+      </div>
+    </div>
 
-<div class="mb-3 grid grid-cols-2 gap-4">
-  <div>
-    <label class="form-label" for="pitch">Pitch (度)</label>
-    <input
-      type="number"
-      class="form-control"
-      id="pitch"
-      step="0.1"
-      min="-90"
-      max="90"
-      bind:value={$robotSettings.pitch}
-      readonly
-    />
+    <!-- 走行制御 Section -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">走行制御</h3>
+      
+      <div class="mb-3 space-y-3">
+        <div>
+          <label class="form-label" for="speed">走行速度 (m/s)</label>
+          <div class="flex items-center gap-2">
+            <input type="range" class="form-range flex-1 rounded-full" id="speed" min="0" max="1" step="0.1" bind:value={$robotSettings.speed} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {$robotSettings.speed * 100}%, #e5e7eb {$robotSettings.speed * 100}%, #e5e7eb 100%); background-size: 100% 100%;" />
+            <input type="number" class="form-control w-28 text-right" min="0" max="1" step="0.1" bind:value={$robotSettings.speed} />
+            <span class="text-sm text-gray-500 w-8">m/s</span>
+          </div>
+        </div>
+        <div>
+          <label class="form-label" for="tireRotation">タイヤ回転数 (rpm)</label>
+          <div class="flex items-center gap-2">
+            <input type="range" class="form-range flex-1 rounded-full" id="tireRotation" min="0" max="200" step="1" bind:value={$robotSettings.tireRotation} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {$robotSettings.tireRotation / 2}%, #e5e7eb {$robotSettings.tireRotation / 2}%, #e5e7eb 100%); background-size: 100% 100%;" />
+            <input type="number" class="form-control w-28 text-right" min="0" max="200" step="1" bind:value={$robotSettings.tireRotation} />
+            <span class="text-sm text-gray-500 w-8">rpm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+         <label class="form-label" for="obstacleDetected">障害物検知</label>
+         <div>
+            <label class="relative inline-flex items-center cursor-pointer">
+               <input type="checkbox" id="obstacleDetected" bind:checked={$robotSettings.obstacleDetected} class="sr-only peer">
+               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+             </label>
+         </div>
+      </div>
+    </div>
+
+    <!-- 姿勢制御 Section -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">姿勢制御</h3>
+
+      <div class="mb-3">
+        <label class="form-label" for="tilt3D">傾き調整 (3Dビュー)</label>
+        <Tilt3D />
+        <small class="form-text text-muted">ドラッグして傾きを調整できます</small>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="form-label" for="pitch">ピッチ (°)</label>
+          <div class="flex items-center gap-2">
+            <input type="range" class="form-range flex-1 rounded-full" id="pitch" min="-90" max="90" step="0.5" bind:value={$robotSettings.pitch} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {($robotSettings.pitch + 90) / 1.8}%, #e5e7eb {($robotSettings.pitch + 90) / 1.8}%, #e5e7eb 100%); background-size: 100% 100%;" />
+            <input type="number" class="form-control w-28 text-right" min="-90" max="90" step="0.5" bind:value={$robotSettings.pitch} />
+            <span class="text-sm text-gray-500 w-8">°</span>
+          </div>
+        </div>
+        <div>
+          <label class="form-label" for="roll">ロール (°)</label>
+          <div class="flex items-center gap-2">
+            <input type="range" class="form-range flex-1 rounded-full" id="roll" min="-90" max="90" step="0.5" bind:value={$robotSettings.roll} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {($robotSettings.roll + 90) / 1.8}%, #e5e7eb {($robotSettings.roll + 90) / 1.8}%, #e5e7eb 100%); background-size: 100% 100%;" />
+            <input type="number" class="form-control w-28 text-right" min="-90" max="90" step="0.5" bind:value={$robotSettings.roll} />
+            <span class="text-sm text-gray-500 w-8">°</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- デバイス制御 Section -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">デバイス制御</h3>
+      
+      <div class="mb-3">
+        <label class="form-label" for="cameraClarity">カメラ鮮明度 (%)</label>
+        <div class="flex items-center gap-2">
+          <input 
+            type="range" 
+            class="form-range flex-1 rounded-full" 
+            id="cameraClarity" 
+            min="0" 
+            max="100" 
+            bind:value={$robotSettings.cameraClarity}
+            style="--range-color: {
+              $robotSettings.cameraClarity <= 20 ? '#dc2626' : 
+              $robotSettings.cameraClarity <= 40 ? '#ca8a04' : '#2563eb'
+            }; background: linear-gradient(to right, {$robotSettings.cameraClarity <= 20 ? '#dc2626' : $robotSettings.cameraClarity <= 40 ? '#ca8a04' : '#2563eb'} 0%, {$robotSettings.cameraClarity <= 20 ? '#dc2626' : $robotSettings.cameraClarity <= 40 ? '#ca8a04' : '#2563eb'} {$robotSettings.cameraClarity}%, #e5e7eb {$robotSettings.cameraClarity}%, #e5e7eb 100%); background-size: 100% 100%; argument: none;"
+          />
+          <input type="number" class={`form-control w-28 text-right ${$robotSettings.cameraClarity <= 20 ? 'text-red-600 font-bold' : $robotSettings.cameraClarity <= 40 ? 'text-yellow-600 font-bold' : ''}`} min="0" max="100" bind:value={$robotSettings.cameraClarity} />
+          <span class="text-sm text-gray-500 w-8">%</span>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="batteryLevel">バッテリー残量 (%)</label>
+         <div class="flex items-center gap-2">
+            <input 
+              type="range" 
+              class="form-range flex-1 rounded-full" 
+              id="batteryLevel" 
+              min="0" 
+              max="100" 
+              bind:value={$robotSettings.batteryLevel}
+              style="--range-color: {
+                $robotSettings.batteryLevel === 0 ? '#dc2626' : 
+                $robotSettings.batteryLevel <= 20 ? '#ca8a04' : '#2563eb'
+              }; background: linear-gradient(to right, {$robotSettings.batteryLevel === 0 ? '#dc2626' : $robotSettings.batteryLevel <= 20 ? '#ca8a04' : '#2563eb'} 0%, {$robotSettings.batteryLevel === 0 ? '#dc2626' : $robotSettings.batteryLevel <= 20 ? '#ca8a04' : '#2563eb'} {$robotSettings.batteryLevel}%, #e5e7eb {$robotSettings.batteryLevel}%, #e5e7eb 100%); background-size: 100% 100%;"
+            />
+            <input type="number" class={`form-control w-28 text-right ${$robotSettings.batteryLevel === 0 ? 'text-red-600 font-bold' : $robotSettings.batteryLevel <= 20 ? 'text-yellow-600 font-bold' : ''}`} min="0" max="100" bind:value={$robotSettings.batteryLevel} />
+            <span class="text-sm text-gray-500 w-8">%</span>
+         </div>
+      </div>
+
+       <div class="mb-3">
+         <label class="form-label" for="trayFull">トレイ満タン</label>
+         <div>
+            <label class="relative inline-flex items-center cursor-pointer">
+               <input type="checkbox" id="trayFull" bind:checked={$robotSettings.trayFull} class="sr-only peer">
+               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+             </label>
+         </div>
+      </div>
+    </div>
   </div>
-  <div>
-    <label class="form-label" for="roll">Roll (度)</label>
-    <input
-      type="number"
-      class="form-control"
-      id="roll"
-      step="0.1"
-      min="-90"
-      max="90"
-      bind:value={$robotSettings.roll}
-      readonly
-    />
+
+  <div class="flex-none border-t bg-white/50 p-4 backdrop-blur-sm flex justify-center">
+    <button
+      type="button"
+      class="btn btn-primary w-auto px-8 transform shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+      on:click={handleSend}>📤 分析サービスへ送信</button
+    >
   </div>
 </div>
-
-<div class="mb-3 grid grid-cols-2 gap-4">
-  <div>
-    <label class="form-label" for="startTime">走行開始時刻</label>
-    <input type="datetime-local" class="form-control" id="startTime" bind:value={$robotSettings.startTime} required />
-  </div>
-  <div>
-    <label class="form-label" for="stopTime">走行停止時刻</label>
-    <input type="datetime-local" class="form-control" id="stopTime" bind:value={$robotSettings.stopTime} required />
-  </div>
-</div>
-
-<div class="mb-3">
-  <label class="form-label" for="route">走行経路 (JSON形式)</label>
-  <textarea class="form-control" id="route" rows="6" bind:value={$robotSettings.route} required></textarea>
-  <small class="form-text text-muted">JSON配列形式で入力</small>
-</div>
-
-<div class="mb-3">
-  <label class="form-label" for="anomalyCode">異常検知コード (オプション)</label>
-  <select class="form-select" id="anomalyCode" bind:value={$robotSettings.anomalyCode}>
-    <option value="">正常</option>
-    <option value="OBS001">障害物検知</option>
-    <option value="HW001">ハードウェア異常</option>
-    <option value="DEV001">経路逸脱</option>
-  </select>
-</div>
-
-{#if $robotSettings.anomalyCode}
-  <div class="mb-3">
-    <label class="form-label" for="anomalyDetails">異常詳細情報</label>
-    <textarea
-      class="form-control"
-      id="anomalyDetails"
-      rows="3"
-      bind:value={$robotSettings.anomalyDetails}
-      placeholder={`{"type": "obstacle", "description": "障害物を検知しました"}`}
-    ></textarea>
-  </div>
-{/if}
-
-<button
-  type="button"
-  class="btn btn-primary w-full transform shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-  on:click={handleSend}>📤 分析サービスへ送信</button
->
 
 <style>
-  /* Global styles from styles.css are used */
+  /* Custom range slider colors - change thumb and track progress color */
+  
+  /* For Chrome, Safari, Edge */
+  input[type="range"].form-range::-webkit-slider-thumb {
+    background-color: var(--range-color, #3b82f6) !important;
+  }
+
+  input[type="range"].form-range::-webkit-slider-runnable-track {
+    background: transparent !important;
+  }
+
+  /* For Firefox - thumb */
+  input[type="range"].form-range::-moz-range-thumb {
+    background-color: var(--range-color, #3b82f6) !important;
+  }
+
+  /* For Firefox - progress track */
+  input[type="range"].form-range::-moz-range-progress {
+    background-color: var(--range-color, #3b82f6) !important;
+  }
 </style>
