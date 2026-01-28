@@ -3,7 +3,7 @@ import { analysisResult } from '../stores/robotStore';
 import type { RobotSettings } from '../stores/robotStore';
 import type { HouseSettings } from '../stores/houseStore';
 
-export type HealthStatus = 'health' | 'warning' | 'critical' | 'unknown';
+export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
 
 export interface AnalysisResultDetailed {
   system: {
@@ -88,7 +88,7 @@ export function analyzeHealth(robot?: RobotSettings, house?: HouseSettings): Ana
   }
 
   // Calculate System Health
-  let systemHealth: HealthStatus = 'health';
+  let systemHealth: HealthStatus = 'healthy';
 
   const statuses: HealthStatus[] = [];
   if (robotResult) statuses.push(robotResult.health);
@@ -130,11 +130,11 @@ function analyzeRobot(robot: RobotSettings): {
 
   // 1. Check for specific status codes first (User Defined Logic)
   // Normal Series
-  if (code === 'S-01') return { health: 'health', diagnosis: 'アイドル状態です。', action: '正常に稼働しています。' };
-  if (code === 'S-02') return { health: 'health', diagnosis: '移動中です。', action: '正常に稼働しています。' };
-  if (code === 'S-03') return { health: 'health', diagnosis: '収穫中です。', action: '正常に稼働しています。' };
+  if (code === 'S-01') return { health: 'healthy', diagnosis: 'アイドル状態です。', action: '正常に稼働しています。' };
+  if (code === 'S-02') return { health: 'healthy', diagnosis: '移動中です。', action: '正常に稼働しています。' };
+  if (code === 'S-03') return { health: 'healthy', diagnosis: '収穫中です。', action: '正常に稼働しています。' };
   if (code === 'S-04')
-    return { health: 'health', diagnosis: '帰還中です（充電や荷下ろし）。', action: '正常に稼働しています。' };
+    return { health: 'healthy', diagnosis: '帰還中です（充電や荷下ろし）。', action: '正常に稼働しています。' };
 
   // Running Error Series
   if (code === 'R-01')
@@ -194,7 +194,7 @@ function analyzeRobot(robot: RobotSettings): {
   }
 
   return {
-    health: 'health',
+    health: 'healthy',
     diagnosis: '正常',
     action: '正常に稼働しています。定期的なメンテナンスを継続してください。',
   };
@@ -273,7 +273,7 @@ function analyzeHouse(house: HouseSettings): {
   }
 
   return {
-    health: 'health',
+    health: 'healthy',
     diagnosis: 'すべての環境値が適正範囲内です。',
     problematicData: [],
     action: '現在の環境を維持してください。',

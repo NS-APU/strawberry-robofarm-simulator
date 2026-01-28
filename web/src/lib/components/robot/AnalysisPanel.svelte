@@ -5,7 +5,7 @@
 
   // Status localization map
   const STATUS_TEXT = {
-    health: '正常',
+    healthy: '正常',
     warning: '注意',
     critical: '異常',
     unknown: '不明',
@@ -99,8 +99,8 @@
           <span class="text-gray-600 font-medium">総合ステータス</span>
           <span
             class="rounded-full px-3 py-1 text-sm font-bold"
-            class:bg-green-100={$analysisResult.result?.system.health === 'health'}
-            class:text-green-700={$analysisResult.result?.system.health === 'health'}
+            class:bg-green-100={$analysisResult.result?.system.health === 'healthy'}
+            class:text-green-700={$analysisResult.result?.system.health === 'healthy'}
             class:bg-yellow-100={$analysisResult.result?.system.health === 'warning'}
             class:text-yellow-700={$analysisResult.result?.system.health === 'warning'}
             class:bg-red-100={$analysisResult.result?.system.health === 'critical'}
@@ -130,8 +130,8 @@
             <span class="text-gray-600 font-medium">ステータス</span>
             <span
               class="rounded-full px-3 py-1 text-sm font-bold"
-              class:bg-green-100={$analysisResult.result?.robot.health === 'health'}
-              class:text-green-700={$analysisResult.result?.robot.health === 'health'}
+              class:bg-green-100={$analysisResult.result?.robot.health === 'healthy'}
+              class:text-green-700={$analysisResult.result?.robot.health === 'healthy'}
               class:bg-yellow-100={$analysisResult.result?.robot.health === 'warning'}
               class:text-yellow-700={$analysisResult.result?.robot.health === 'warning'}
               class:bg-red-100={$analysisResult.result?.robot.health === 'critical'}
@@ -168,8 +168,8 @@
             <span class="text-gray-600 font-medium">ステータス</span>
             <span
               class="rounded-full px-3 py-1 text-sm font-bold"
-              class:bg-green-100={$analysisResult.result?.house.health === 'health'}
-              class:text-green-700={$analysisResult.result?.house.health === 'health'}
+              class:bg-green-100={$analysisResult.result?.house.health === 'healthy'}
+              class:text-green-700={$analysisResult.result?.house.health === 'healthy'}
               class:bg-yellow-100={$analysisResult.result?.house.health === 'warning'}
               class:text-yellow-700={$analysisResult.result?.house.health === 'warning'}
               class:bg-red-100={$analysisResult.result?.house.health === 'critical'}
@@ -221,7 +221,7 @@
         {#each $robotLogs as log}
           <button
             class="log-entry w-full text-left rounded p-3 text-xs border bg-white transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-            class:border-green-200={log.analysis?.system.health === 'health'}
+            class:border-green-200={log.analysis?.system.health === 'healthy'}
             class:border-yellow-200={log.analysis?.system.health === 'warning'}
             class:border-red-200={log.analysis?.system.health === 'critical'}
             class:border-gray-200={log.analysis?.system.health === 'unknown'}
@@ -361,7 +361,7 @@
                    <strong class="text-gray-700">🤖 ロボット分析:</strong>
                    <span 
                     class="font-bold border-b-2"
-                    class:border-green-400={selectedLog.analysis.robot.health === 'health'}
+                    class:border-green-400={selectedLog.analysis.robot.health === 'healthy'}
                     class:border-yellow-400={selectedLog.analysis.robot.health === 'warning'}
                     class:border-red-400={selectedLog.analysis.robot.health === 'critical'}
                    >
@@ -380,7 +380,7 @@
                    <strong class="text-gray-700">🏠 ハウス分析:</strong>
                    <span 
                     class="font-bold border-b-2"
-                    class:border-green-400={selectedLog.analysis.house.health === 'health'}
+                    class:border-green-400={selectedLog.analysis.house.health === 'healthy'}
                     class:border-yellow-400={selectedLog.analysis.house.health === 'warning'}
                     class:border-red-400={selectedLog.analysis.house.health === 'critical'}
                    >
@@ -398,7 +398,7 @@
                 <div class="flex justify-between items-center font-bold">
                   <span>システム健全性:</span>
                   <span
-                   class:text-green-600={selectedLog.analysis.system.health === 'health'}
+                   class:text-green-600={selectedLog.analysis.system.health === 'healthy'}
                    class:text-yellow-600={selectedLog.analysis.system.health === 'warning'}
                    class:text-red-600={selectedLog.analysis.system.health === 'critical'}
                   >

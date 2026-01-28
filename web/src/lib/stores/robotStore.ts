@@ -16,15 +16,15 @@ export interface RobotSettings {
 
 export interface AnalysisResultDetailed {
   system: {
-    health: 'health' | 'warning' | 'critical' | 'unknown';
+    health: 'healthy' | 'warning' | 'critical' | 'unknown';
   };
   robot: {
-    health: 'health' | 'warning' | 'critical' | 'unknown';
+    health: 'healthy' | 'warning' | 'critical' | 'unknown';
     diagnosis: string;
     action: string;
   };
   house: {
-    health: 'health' | 'warning' | 'critical' | 'unknown';
+    health: 'healthy' | 'warning' | 'critical' | 'unknown';
     diagnosis: string;
     problematicData: string[];
     action: string;
