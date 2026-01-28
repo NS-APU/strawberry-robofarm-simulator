@@ -3,6 +3,12 @@ import { analysisResult } from '../stores/robotStore';
 import type { RobotSettings } from '../stores/robotStore';
 import type { HouseSettings } from '../stores/houseStore';
 
+// 環境変数から設定を読み込み
+const SEND_ENABLE = import.meta.env.VITE_AGRI_SEND_ENABLE === 'true';
+const ORION_ENDPOINT =
+  import.meta.env.VITE_ORION_ENDPOINT || 'https://platform.ak-agri.systemdesign-apu.com/api/orion/';
+const ORION_ENTITY_ID = import.meta.env.VITE_ORION_ENTITY_ID || 'urn:ngsi-ld:AgrifarmRobotHouseSnapshot:site-01';
+
 export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
 
 export interface AnalysisResultDetailed {
@@ -21,6 +27,20 @@ export interface AnalysisResultDetailed {
     action: string;
   };
   timestamp: string;
+}
+
+// NGSI-LD Entity type
+interface NGSILDEntity {
+  id: string;
+  type: string;
+  systemTimestamp: {
+    type: string;
+    value: string;
+  };
+  robot?: any;
+  house?: any;
+  analysis: any;
+  '@context': string[];
 }
 
 // Thresholds
@@ -121,6 +141,165 @@ export function analyzeHealth(robot?: RobotSettings, house?: HouseSettings): Ana
   };
 }
 
+/**
+ * データをNGSI-LD形式に変換する
+ */
+function convertToNGSILD(data: {
+  timestamp: string;
+  robot?: { settings: RobotSettings; timestamp: string };
+  house?: { settings: HouseSettings; timestamp: string };
+  analysis: AnalysisResultDetailed;
+}): NGSILDEntity {
+  const ngsiEntity: any = {
+    id: ORION_ENTITY_ID,
+    type: 'AgrifarmRobotHouseSnapshot',
+    systemTimestamp: {
+      type: 'Property',
+      value: data.timestamp,
+    },
+  };
+
+  // Robot data
+  if (data.robot) {
+    ngsiEntity.robot = {
+      type: 'Property',
+      value: {
+        speed: data.robot.settings.speed,
+        pitch: data.robot.settings.pitch,
+        roll: data.robot.settings.roll,
+        tireRotation: data.robot.settings.tireRotation,
+        obstacleDetected: data.robot.settings.obstacleDetected,
+        cameraClarity: data.robot.settings.cameraClarity,
+        trayFull: data.robot.settings.trayFull,
+        batteryLevel: data.robot.settings.batteryLevel / 100, // Convert percentage to decimal
+        status: data.robot.settings.statusCode,
+      },
+      observedAt: data.robot.timestamp,
+      speed_unitCode: { type: 'Property', value: 'MTS' },
+      pitch_unitCode: { type: 'Property', value: 'DD' },
+      roll_unitCode: { type: 'Property', value: 'DD' },
+      tireRotation_unitCode: { type: 'Property', value: 'RPM' },
+      cameraClarity_unitCode: { type: 'Property', value: 'P1' },
+    };
+  }
+
+  // House data
+  if (data.house) {
+    ngsiEntity.house = {
+      type: 'Property',
+      value: {
+        temperature: data.house.settings.temperature,
+        relativeHumidity: data.house.settings.humidity,
+        illuminance: data.house.settings.illuminance,
+        co2: data.house.settings.co2,
+      },
+      observedAt: data.house.timestamp,
+      temperature_unitCode: { type: 'Property', value: 'CEL' },
+      relativeHumidity_unitCode: { type: 'Property', value: 'P1' },
+      illuminance_unitCode: { type: 'Property', value: 'LUX' },
+      co2_unitCode: { type: 'Property', value: '3P' },
+    };
+  }
+
+  // Analysis data
+  ngsiEntity.analysis = {
+    type: 'Property',
+    value: {
+      system: {
+        health: data.analysis.system.health,
+      },
+      robot: {
+        health: data.analysis.robot.health,
+        diagnosis: data.analysis.robot.diagnosis,
+        action: data.analysis.robot.action,
+      },
+      house: {
+        health: data.analysis.house.health,
+        diagnosis: data.analysis.house.diagnosis,
+        problematicData: data.analysis.house.problematicData,
+        action: data.analysis.house.action,
+      },
+    },
+    observedAt: data.analysis.timestamp,
+  };
+
+  // Add @context
+  ngsiEntity['@context'] = [
+    'https://smart-data-models.github.io/dataModel.Device/context.jsonld',
+    'https://smart-data-models.github.io/dataModel.Environment/context.jsonld',
+    'https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld',
+  ];
+
+  return ngsiEntity;
+}
+
+/**
+ * 農業情報基盤へデータを送信する (FIWARE/ORIONにNGSI-LD形式で送信)
+ * @param data 送信するデータ
+ * @returns Promise<{success: boolean, error?: string}>
+ */
+export async function sendToAgriPlatform(data: {
+  timestamp: string;
+  robot?: { settings: RobotSettings; timestamp: string };
+  house?: { settings: HouseSettings; timestamp: string };
+  analysis: AnalysisResultDetailed;
+}): Promise<{ success: boolean; error?: string; mode: 'simulation' | 'real' }> {
+  // Convert to NGSI-LD format
+  const ngsiEntity = convertToNGSILD(data);
+
+  // シミュレーションモード
+  if (!SEND_ENABLE) {
+    console.group('--- 農業情報基盤へのデータ送信 (シミュレーション) ---');
+    console.info('送信モード: シミュレーション');
+    console.info('NGSI-LDデータ:', ngsiEntity);
+    console.groupEnd();
+    return { success: true, mode: 'simulation' };
+  }
+
+  // 実送信モード - FIWARE/ORIONへ送信
+  try {
+    const orionUrl = `${ORION_ENDPOINT}ngsi-ld/v1/entityOperations/upsert`;
+
+    console.group('--- 農業情報基盤へのデータ送信 (FIWARE/ORION) ---');
+    console.info('送信先:', orionUrl);
+    console.info('NGSI-LDデータ:', ngsiEntity);
+
+    const response = await fetch(orionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/ld+json',
+        'NGSILD-Tenant': 'agri_farm_robot_house',
+        Accept: 'application/ld+json',
+      },
+      body: JSON.stringify([ngsiEntity]), // upsert expects an array
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.info('送信成功');
+    console.groupEnd();
+
+    return { success: true, mode: 'real' };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : '不明なエラー';
+    console.error('送信エラー:', errorMsg);
+    console.groupEnd();
+    return { success: false, error: errorMsg, mode: 'real' };
+  }
+}
+
+/**
+ * 送信モードを取得
+ */
+export function getSendMode(): { enabled: boolean; endpoint: string } {
+  return {
+    enabled: SEND_ENABLE,
+    endpoint: SEND_ENABLE ? ORION_ENDPOINT : '',
+  };
+}
+
 function analyzeRobot(robot: RobotSettings): {
   health: HealthStatus;
   diagnosis: string;
@@ -152,7 +331,7 @@ function analyzeRobot(robot: RobotSettings): {
       action: 'ロボットを走行可能な場所まで移動させてください。',
     };
 
-  // Harvest/Device Warning Series
+  //  Harvest/Device Warning Series
   if (code === 'H-01')
     return { health: 'warning', diagnosis: 'カメラが汚れています。', action: 'カメラをきれいにしてください。' };
   if (code === 'H-02')
