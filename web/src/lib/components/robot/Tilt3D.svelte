@@ -13,14 +13,16 @@
 
   // Reactively update 3D model when store changes
   $: if (platform) {
-    updatePlatformRotation($robotSettings.pitch, $robotSettings.roll);
+    updatePlatformRotation($robotSettings.pitch, $robotSettings.roll, $robotSettings.yaw);
   }
 
-  function updatePlatformRotation(pitch: number, roll: number) {
+  function updatePlatformRotation(pitch: number, roll: number, yaw: number) {
     const pitchRad = (pitch * Math.PI) / 180;
     const rollRad = (roll * Math.PI) / 180;
+    const yawRad = (yaw * Math.PI) / 180;
     platform.rotation.x = pitchRad;
     platform.rotation.z = rollRad;
+    platform.rotation.y = yawRad;
   }
 
   onMount(() => {
@@ -91,7 +93,7 @@
     scene.add(group);
 
     // Initial sync
-    updatePlatformRotation($robotSettings.pitch, $robotSettings.roll);
+    updatePlatformRotation($robotSettings.pitch, $robotSettings.roll, $robotSettings.yaw);
   }
 
   function animate() {
@@ -119,18 +121,39 @@
       const deltaX = e.clientX - previousMousePosition.x;
       const deltaY = e.clientY - previousMousePosition.y;
 
-      let newRoll = $robotSettings.roll + deltaX * 0.5;
-      let newPitch = $robotSettings.pitch - deltaY * 0.5;
+      if (e.shiftKey) {
+        // Shift pressed: Control Yaw (X) and Pitch (Y)
+        // Or maybe just Yaw? Let's do Yaw interaction.
+        let newYaw = $robotSettings.yaw - deltaX * 0.5; // Drag Left -> Rotate Left (Positive Yaw is often Left or Right depending on coord system. Let's assume standard Right Hand Rule usually: Z up, Y forward. Wait, here Y is Up (ThreeJS default). So Yaw is rotation around Y.
+        // In screen space, dragging X changes Yaw.
+        
+        // Clamp Yaw to -180 to 180
+        if (newYaw > 180) newYaw -= 360;
+        if (newYaw < -180) newYaw += 360;
+        
+        // Actually the slider is -180 to 180. Let's clamp it to that range or loop?
+        // Sliders are usually clamped. Let's clamp.
+        newYaw = Math.max(-180, Math.min(180, newYaw));
 
-      // Clamp
-      newRoll = Math.max(-90, Math.min(90, newRoll));
-      newPitch = Math.max(-90, Math.min(90, newPitch));
+        robotSettings.update((s) => ({
+          ...s,
+          yaw: parseFloat(newYaw.toFixed(1)),
+        }));
+      } else {
+        // Normal: Control Roll (X) and Pitch (Y)
+        let newRoll = $robotSettings.roll + deltaX * 0.5;
+        let newPitch = $robotSettings.pitch - deltaY * 0.5;
 
-      robotSettings.update((s) => ({
-        ...s,
-        roll: parseFloat(newRoll.toFixed(1)),
-        pitch: parseFloat(newPitch.toFixed(1)),
-      }));
+        // Clamp
+        newRoll = Math.max(-90, Math.min(90, newRoll));
+        newPitch = Math.max(-90, Math.min(90, newPitch));
+
+        robotSettings.update((s) => ({
+          ...s,
+          roll: parseFloat(newRoll.toFixed(1)),
+          pitch: parseFloat(newPitch.toFixed(1)),
+        }));
+      }
 
       previousMousePosition = { x: e.clientX, y: e.clientY };
     });
@@ -141,13 +164,17 @@
   }
 
   function resetTilt() {
-    robotSettings.update((s) => ({ ...s, pitch: 0, roll: 0 }));
+    robotSettings.update((s) => ({ ...s, pitch: 0, roll: 0, yaw: 0 }));
   }
 </script>
 
 <div class="tilt-3d-container" id="tilt3DContainer" bind:this={container}>
   <canvas id="tilt3DCanvas" bind:this={canvas}></canvas>
   <div class="tilt-values">
+    <div class="tilt-value-item">
+      <span class="tilt-label">Yaw:</span>
+      <span class="tilt-value">{$robotSettings.yaw}°</span>
+    </div>
     <div class="tilt-value-item">
       <span class="tilt-label">Pitch:</span>
       <span class="tilt-value">{$robotSettings.pitch}°</span>
@@ -157,9 +184,42 @@
       <span class="tilt-value">{$robotSettings.roll}°</span>
     </div>
   </div>
+  <div class="tilt-controls-guide">
+    <div class="guide-item"><span class="key">Drag</span> Pitch / Roll</div>
+    <div class="guide-item"><span class="key">Shift+Drag</span> Yaw</div>
+  </div>
   <button type="button" class="btn btn-sm btn-outline-secondary reset-tilt-btn" on:click={resetTilt}> リセット </button>
 </div>
 
 <style>
   /* Global styles from styles.css are used */
+  .tilt-controls-guide {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #4b5563;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .guide-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2px;
+  }
+  .guide-item:last-child {
+    margin-bottom: 0;
+  }
+  .key {
+    background-color: #e5e7eb;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-family: monospace;
+    border: 1px solid #d1d5db;
+  }
 </style>

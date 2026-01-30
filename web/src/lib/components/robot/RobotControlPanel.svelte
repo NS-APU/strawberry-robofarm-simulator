@@ -93,10 +93,18 @@
       <div class="mb-3">
         <label class="form-label" for="tilt3D">傾き調整 (3Dビュー)</label>
         <Tilt3D />
-        <small class="form-text text-muted">ドラッグして傾きを調整できます</small>
+
       </div>
 
       <div class="space-y-3">
+        <div>
+          <label class="form-label" for="yaw">ヨー (°)</label>
+          <div class="flex items-center gap-2">
+            <input type="range" class="form-range flex-1 rounded-full" id="yaw" min="-180" max="180" step="0.5" bind:value={$robotSettings.yaw} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {($robotSettings.yaw + 180) / 3.6}%, #e5e7eb {($robotSettings.yaw + 180) / 3.6}%, #e5e7eb 100%); background-size: 100% 100%;" />
+            <input type="number" class="form-control w-28 text-right" min="-180" max="180" step="0.5" bind:value={$robotSettings.yaw} />
+            <span class="text-sm text-gray-500 w-8">°</span>
+          </div>
+        </div>
         <div>
           <label class="form-label" for="pitch">ピッチ (°)</label>
           <div class="flex items-center gap-2">

@@ -6,6 +6,7 @@ export interface RobotSettings {
   speed: number;
   pitch: number;
   roll: number;
+  yaw: number;
   tireRotation: number; // rpm
   obstacleDetected: boolean;
   cameraClarity: number; // 0-100
@@ -78,6 +79,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 100,
     trayFull: false,
@@ -88,6 +90,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 100,
     trayFull: false,
@@ -98,6 +101,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 100,
     trayFull: false,
@@ -108,6 +112,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 20,
     trayFull: true,
@@ -118,6 +123,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 80,
     trayFull: false,
@@ -128,6 +134,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: true,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 80,
     trayFull: false,
@@ -138,6 +145,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 90,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 80,
     trayFull: false,
@@ -148,6 +156,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 20,
     batteryLevel: 100,
     trayFull: false,
@@ -158,6 +167,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 60,
     trayFull: true,
@@ -168,6 +178,7 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
     obstacleDetected: false,
     pitch: 0,
     roll: 0,
+    yaw: 0,
     cameraClarity: 100,
     batteryLevel: 10,
     trayFull: false,
@@ -179,6 +190,7 @@ const initialState: RobotSettings = {
   speed: 0,
   pitch: 0,
   roll: 0,
+  yaw: 0,
   tireRotation: 0,
   obstacleDetected: false,
   cameraClarity: 100,
