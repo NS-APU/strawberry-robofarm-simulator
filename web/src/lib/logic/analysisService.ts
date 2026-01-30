@@ -10,15 +10,7 @@ const ORION_API_PATH = import.meta.env.VITE_ORION_API_PATH || '/api/orion';
 const ORION_ENTITY_ID = import.meta.env.VITE_ORION_ENTITY_ID || 'urn:ngsi-ld:AgrifarmRobotHouseSnapshot:site-01';
 
 const getOrionEndpoint = () => {
-  try {
-    const url = new URL(ORION_BASE_URL);
-    if (import.meta.env.DEV || url.hostname === 'localhost') {
-      return ORION_API_PATH;
-    }
-    return ORION_BASE_URL + ORION_API_PATH;
-  } catch (e) {
-    return ORION_BASE_URL + ORION_API_PATH;
-  }
+  return ORION_API_PATH;
 };
 
 const ORION_ENDPOINT = getOrionEndpoint();
