@@ -5,8 +5,23 @@ import type { HouseSettings } from '../stores/houseStore';
 
 // 環境変数から設定を読み込み
 const SEND_ENABLE = import.meta.env.VITE_AGRI_SEND_ENABLE === 'true';
+const ORION_BASE_URL = import.meta.env.VITE_ORION_BASE_URL || 'http://localhost';
 const ORION_API_PATH = import.meta.env.VITE_ORION_API_PATH || '/api/orion';
 const ORION_ENTITY_ID = import.meta.env.VITE_ORION_ENTITY_ID || 'urn:ngsi-ld:AgrifarmRobotHouseSnapshot:site-01';
+
+const getOrionEndpoint = () => {
+  try {
+    const url = new URL(ORION_BASE_URL);
+    if (import.meta.env.DEV || url.hostname === 'localhost') {
+      return ORION_API_PATH;
+    }
+    return ORION_BASE_URL + ORION_API_PATH;
+  } catch (e) {
+    return ORION_BASE_URL + ORION_API_PATH;
+  }
+};
+
+const ORION_ENDPOINT = getOrionEndpoint();
 
 export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
 
@@ -257,7 +272,7 @@ export async function sendToAgriPlatform(data: {
 
   // 実送信モード - FIWARE/ORIONへ送信
   try {
-    const orionUrl = `${ORION_API_PATH}/ngsi-ld/v1/entityOperations/upsert`;
+    const orionUrl = `${ORION_ENDPOINT}/ngsi-ld/v1/entityOperations/upsert`;
 
     console.group('--- 農業情報基盤へのデータ送信 (FIWARE/ORION) ---');
     console.info('送信先:', orionUrl);
@@ -295,7 +310,7 @@ export async function sendToAgriPlatform(data: {
 export function getSendMode(): { enabled: boolean; endpoint: string } {
   return {
     enabled: SEND_ENABLE,
-    endpoint: SEND_ENABLE ? ORION_API_PATH : '',
+    endpoint: SEND_ENABLE ? ORION_ENDPOINT : '',
   };
 }
 
