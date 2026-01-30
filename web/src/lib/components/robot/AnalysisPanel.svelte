@@ -237,11 +237,6 @@
             {sendMode.enabled ? '🌐 農業情報基盤へ送信' : '💻 シミュレーション'}
           </span>
         </div>
-        {#if sendMode.enabled && sendMode.endpoint}
-          <div class="mt-1 text-gray-600">
-            <span class="opacity-70">送信先:</span> <code class="text-xs bg-white px-1 rounded">{sendMode.endpoint}</code>
-          </div>
-        {/if}
       </div>
 
       <div class="flex items-center gap-2 px-1">
