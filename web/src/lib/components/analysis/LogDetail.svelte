@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { LogEntry } from '../../stores/robotStore';
-  import { getStatusText } from './analysisUtils';
+  import { getStatusText } from '../../logic/analysisService';
 
   export let log: LogEntry;
 
@@ -16,18 +16,17 @@
   }
 </script>
 
-<div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 transition-opacity"
-  on:click={() => dispatch('close')}
-  on:keydown={handleKeyDown}
-  role="button"
-  tabindex="0"
-  aria-label="閉じる"
->
+<svelte:window on:keydown={handleKeyDown} />
+
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <button
+    class="absolute inset-0 h-full w-full bg-black bg-opacity-50 transition-opacity"
+    on:click={() => dispatch('close')}
+    aria-label="閉じる"
+    type="button"
+  ></button>
   <div
-    class="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
-    on:click|stopPropagation={() => {}}
-    on:keydown|stopPropagation={() => {}}
+    class="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
     role="document"
   >
     <div class="flex items-center justify-between border-b p-4">

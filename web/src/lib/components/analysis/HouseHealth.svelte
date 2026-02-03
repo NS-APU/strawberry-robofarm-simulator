@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getStatusText } from './analysisUtils';
+  import { getStatusText } from '../../logic/analysisService';
 
   export let houseResult: {
     health: string;

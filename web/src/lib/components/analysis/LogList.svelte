@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { LogEntry } from '../../stores/robotStore';
-  import { getStatusText } from './analysisUtils';
+  import { getStatusText } from '../../logic/analysisService';
 
   export let logs: LogEntry[] = [];
 

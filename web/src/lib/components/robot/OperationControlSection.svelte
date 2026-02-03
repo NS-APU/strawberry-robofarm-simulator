@@ -26,7 +26,7 @@
   <div class="space-y-4">
     <!-- Operation -->
     <div class="flex flex-col gap-1">
-      <label class="font-bold text-gray-700 text-sm">稼働</label>
+      <span class="font-bold text-gray-700 text-sm">稼働</span>
       <div class="flex items-center gap-1">
         <div class="flex-1 min-w-0">
           <input 
@@ -58,7 +58,7 @@
 
     <!-- Stop -->
     <div class="flex flex-col gap-1">
-      <label class="font-bold text-gray-700 text-sm">停止</label>
+      <span class="font-bold text-gray-700 text-sm">停止</span>
       <div class="flex items-center gap-1">
           <div class="flex-1 min-w-0">
           <input 

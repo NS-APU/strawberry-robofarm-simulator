@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getStatusText } from './analysisUtils';
+  import { getStatusText } from '../../logic/analysisService';
 
   // Define strict type for system result based on AnalysisPanel usage
   export let systemResult: {
