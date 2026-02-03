@@ -2,8 +2,8 @@
   import { robotSettings } from '../../stores/robotStore';
 </script>
 
-<div class="mb-6 rounded-lg bg-gray-50 p-4">
-  <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">収穫制御</h3>
+<div class="control-section">
+  <h3 class="control-section-header">収穫制御</h3>
 
   <div class="mb-3 space-y-3">
     <!-- Harvest Count -->
@@ -12,7 +12,7 @@
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="harvestCount" 
           min="0" 
           max="200" 
@@ -31,7 +31,7 @@
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="detectionCount" 
           min="0" 
           max="200" 
@@ -46,25 +46,4 @@
   </div>
 </div>
 
-<style>
-  /* Custom range slider colors - change thumb and track progress color */
-  
-  /* For Chrome, Safari, Edge */
-  input[type="range"].form-range::-webkit-slider-thumb {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
 
-  input[type="range"].form-range::-webkit-slider-runnable-track {
-    background: transparent !important;
-  }
-
-  /* For Firefox - thumb */
-  input[type="range"].form-range::-moz-range-thumb {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
-
-  /* For Firefox - progress track */
-  input[type="range"].form-range::-moz-range-progress {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
-</style>

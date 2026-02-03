@@ -3,15 +3,15 @@
 </script>
 
 <!-- 環境制御 Section -->
-<div class="mb-6 rounded-lg bg-gray-50 p-4">
-  <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">環境制御</h3>
+<div class="control-section">
+  <h3 class="control-section-header">環境制御</h3>
   <div class="space-y-3">
     <div>
       <label class="form-label" for="temperature">温度 (℃)</label>
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="temperature" 
           min="-10" 
           max="40" 
@@ -41,7 +41,7 @@
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="humidity" 
           min="0" 
           max="100" 
@@ -71,7 +71,7 @@
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="illuminance" 
           min="0" 
           max="75000" 
@@ -101,7 +101,7 @@
       <div class="flex items-center gap-2">
         <input 
           type="range" 
-          class="form-range flex-1 rounded-full" 
+          class="form-range form-range-colored flex-1 rounded-full" 
           id="co2" 
           min="0" 
           max="5000" 
@@ -129,25 +129,4 @@
   </div>
 </div>
 
-<style>
-  /* Custom range slider colors - change thumb and track progress color */
-  
-  /* For Chrome, Safari, Edge */
-  input[type="range"].form-range::-webkit-slider-thumb {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
 
-  input[type="range"].form-range::-webkit-slider-runnable-track {
-    background: transparent !important;
-  }
-
-  /* For Firefox - thumb */
-  input[type="range"].form-range::-moz-range-thumb {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
-
-  /* For Firefox - progress track */
-  input[type="range"].form-range::-moz-range-progress {
-    background-color: var(--range-color, #3b82f6) !important;
-  }
-</style>
