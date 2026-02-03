@@ -13,6 +13,12 @@ export interface RobotSettings {
   trayFull: boolean;
   batteryLevel: number; // 0-100
   statusCode: string;
+  operationStartTime?: string;
+  operationEndTime?: string;
+  stopOccurredTime?: string;
+  stopRecoveryTime?: string;
+  harvestCount: number;
+  detectionCount: number;
 }
 
 export interface AnalysisResultDetailed {
@@ -185,6 +191,19 @@ export const STATUS_SETTINGS: Record<string, Partial<RobotSettings>> = {
   },
 };
 
+// Helper to format date for datetime-local input (YYYY-MM-DDThh:mm)
+const getLocalISOString = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  return localISOTime;
+};
+
+// Calculate defaults
+const now = new Date();
+const opStart = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago
+const stopStart = new Date(now.getTime() - 30 * 60 * 1000); // 30 mins ago
+const stopEnd = new Date(stopStart.getTime() + 3 * 60 * 1000); // 3 mins duration
+
 // 初期値
 const initialState: RobotSettings = {
   speed: 0,
@@ -197,6 +216,12 @@ const initialState: RobotSettings = {
   trayFull: false,
   batteryLevel: 100,
   statusCode: 'S-01',
+  operationStartTime: getLocalISOString(opStart),
+  operationEndTime: getLocalISOString(now),
+  stopOccurredTime: getLocalISOString(stopStart),
+  stopRecoveryTime: getLocalISOString(stopEnd),
+  harvestCount: 0,
+  detectionCount: 0,
 };
 
 // カスタムストアを作成してステータスコード変更時に自動的に設定値を更新

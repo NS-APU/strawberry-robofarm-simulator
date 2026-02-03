@@ -2,6 +2,7 @@
   import { robotSettings, analysisResult, isAnalysisPanelOpen, STATUS_CODES } from '../../stores/robotStore';
   import Tilt3D from './Tilt3D.svelte';
 
+
   import { submitAnalysisData } from '../../logic/analysisService';
 
   function handleSend() {
@@ -11,6 +12,24 @@
     setTimeout(() => {
       submitAnalysisData($robotSettings, undefined);
     }, 500);
+  }
+
+  // 時間差分計算 (HH:mm:ss format)
+  function calculateDuration(start: string | undefined, end: string | undefined): string {
+    if (!start || !end) return '--:--:--';
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    let diff = endDate.getTime() - startDate.getTime();
+    
+    if (diff < 0) return '--:--:--';
+
+    const hours = Math.floor(diff / 3600000);
+    diff %= 3600000;
+    const minutes = Math.floor(diff / 60000);
+    diff %= 60000;
+    const seconds = Math.floor(diff / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 </script>
 
@@ -49,6 +68,75 @@
             {/each}
           </optgroup>
         </select>
+      </div>
+    </div>
+
+    <!-- 稼働制御 Section -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">稼働制御</h3>
+      
+      <div class="space-y-4">
+        <!-- Operation -->
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-gray-700 text-sm">稼働</label>
+          <div class="flex items-center gap-1">
+            <div class="flex-1 min-w-0">
+              <input 
+                type="datetime-local" 
+                class="form-control w-full px-1 py-1 text-xs" 
+                bind:value={$robotSettings.operationStartTime} 
+                title="稼働開始日時"
+              />
+            </div>
+            <span class="text-gray-500 font-bold shrink-0">～</span>
+            <div class="flex-1 min-w-0">
+              <input 
+                type="datetime-local" 
+                class="form-control w-full px-1 py-1 text-xs" 
+                bind:value={$robotSettings.operationEndTime} 
+                title="稼働終了日時"
+              />
+            </div>
+            <span class="text-gray-500 font-bold shrink-0">＝</span>
+            <div class="flex-1 min-w-0">
+              <div class="rounded bg-gray-200 px-1 py-1.5 font-mono text-gray-700 text-xs text-center overflow-hidden text-ellipsis whitespace-nowrap" title="稼働時間">
+                {calculateDuration($robotSettings.operationStartTime, $robotSettings.operationEndTime)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 my-2"></div>
+
+        <!-- Stop -->
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-gray-700 text-sm">停止</label>
+          <div class="flex items-center gap-1">
+             <div class="flex-1 min-w-0">
+              <input 
+                type="datetime-local" 
+                class="form-control w-full px-1 py-1 text-xs" 
+                bind:value={$robotSettings.stopOccurredTime} 
+                title="停止発生日時"
+              />
+            </div>
+            <span class="text-gray-500 font-bold shrink-0">～</span>
+            <div class="flex-1 min-w-0">
+              <input 
+                type="datetime-local" 
+                class="form-control w-full px-1 py-1 text-xs" 
+                bind:value={$robotSettings.stopRecoveryTime} 
+                title="停止復旧日時"
+              />
+            </div>
+            <span class="text-gray-500 font-bold shrink-0">＝</span>
+             <div class="flex-1 min-w-0">
+              <div class="rounded bg-gray-200 px-1 py-1.5 font-mono text-gray-700 text-xs text-center overflow-hidden text-ellipsis whitespace-nowrap" title="停止時間">
+                {calculateDuration($robotSettings.stopOccurredTime, $robotSettings.stopRecoveryTime)}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -119,6 +207,53 @@
             <input type="range" class="form-range flex-1 rounded-full" id="roll" min="-90" max="90" step="0.5" bind:value={$robotSettings.roll} style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {($robotSettings.roll + 90) / 1.8}%, #e5e7eb {($robotSettings.roll + 90) / 1.8}%, #e5e7eb 100%); background-size: 100% 100%;" />
             <input type="number" class="form-control w-28 text-right" min="-90" max="90" step="0.5" bind:value={$robotSettings.roll} />
             <span class="text-sm text-gray-500 w-8">°</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Harvest Control Section -->
+    <!-- 収穫制御 Section -->
+    <div class="mb-6 rounded-lg bg-gray-50 p-4">
+      <h3 class="mb-3 border-b border-gray-200 pb-2 font-bold text-gray-700">収穫制御</h3>
+
+      <div class="mb-3 space-y-3">
+        <!-- Harvest Count -->
+        <div>
+          <label class="form-label" for="harvestCount">収穫数</label>
+          <div class="flex items-center gap-2">
+            <input 
+              type="range" 
+              class="form-range flex-1 rounded-full" 
+              id="harvestCount" 
+              min="0" 
+              max="200" 
+              step="1" 
+              bind:value={$robotSettings.harvestCount}
+              style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {$robotSettings.harvestCount / 2}%, #e5e7eb {$robotSettings.harvestCount / 2}%, #e5e7eb 100%); background-size: 100% 100%;" 
+            />
+            <input type="number" class="form-control w-28 text-right" min="0" max="200" bind:value={$robotSettings.harvestCount} />
+            <span class="text-sm text-gray-500 w-8">個</span>
+          </div>
+        </div>
+
+        <!-- Detection Count -->
+        <div>
+          <label class="form-label" for="detectionCount">検出数</label>
+          <div class="flex items-center gap-2">
+            <input 
+              type="range" 
+              class="form-range flex-1 rounded-full" 
+              id="detectionCount" 
+              min="0" 
+              max="200" 
+              step="1" 
+              bind:value={$robotSettings.detectionCount} 
+              style="--range-color: #3b82f6; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {$robotSettings.detectionCount / 2}%, #e5e7eb {$robotSettings.detectionCount / 2}%, #e5e7eb 100%); background-size: 100% 100%;"
+            />
+            <input type="number" class="form-control w-28 text-right" min="0" max="200" bind:value={$robotSettings.detectionCount} />
+            <span class="text-sm text-gray-500 w-8">個</span>
           </div>
         </div>
       </div>
