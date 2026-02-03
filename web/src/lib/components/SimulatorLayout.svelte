@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isAnalysisPanelOpen } from '../../stores/robotStore';
+  import { isAnalysisPanelOpen } from '../stores/robotStore';
   import { fly, fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
 
