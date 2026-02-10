@@ -53,8 +53,8 @@
     <!-- Analysis Panel (Side Menu) -->
     {#if $isAnalysisPanelOpen}
     <div
-      class="fixed right-0 top-0 z-50 h-full w-[500px] shadow-2xl"
-      transition:fly={{ x: 500, duration: 300, easing: cubicOut }}
+      class="fixed right-0 top-0 z-50 h-full w-[800px] shadow-2xl"
+      transition:fly={{ x: 800, duration: 300, easing: cubicOut }}
     >
       <div class="h-full border-l border-white/20 bg-white/95 backdrop-blur-md">
         <div class="flex h-full flex-col">
