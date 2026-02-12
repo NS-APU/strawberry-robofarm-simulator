@@ -4,11 +4,9 @@
   import type { LogEntry } from '../../stores/robotStore';
   import { sendToAgriPlatform, getSendMode } from '../../logic/analysisService';
   
-  import SystemHealth from './SystemHealth.svelte';
-  import RobotHealth from './RobotHealth.svelte';
-  import HouseHealth from './HouseHealth.svelte';
   import LogList from './LogList.svelte';
   import LogDetail from './LogDetail.svelte';
+  import PerformanceMetrics from './PerformanceMetrics.svelte';
 
   // Get send mode configuration
   const sendMode = getSendMode();
@@ -108,22 +106,9 @@
   </div>
 {:else}
   <div id="analysisContainer" class="space-y-6">
-    <!-- System Health Section -->
-    <SystemHealth systemResult={$analysisResult.result?.system} />
+    <!-- Performance Metrics Section -->
+    <PerformanceMetrics metrics={$analysisResult.result?.metrics} />
 
-    <!-- Robot Health Section -->
-    <RobotHealth 
-      robotResult={$analysisResult.result?.robot} 
-      timestamp={$analysisResult.data?.robot?.timestamp} 
-    />
-
-    <!-- House Health Section -->
-    <HouseHealth 
-      houseResult={$analysisResult.result?.house} 
-      timestamp={$analysisResult.data?.house?.timestamp} 
-    />
-
-    <!-- Divider between House Health and Send Controls -->
     <hr class="border-t-2 border-gray-300 my-4" />
 
     <div class="space-y-3">

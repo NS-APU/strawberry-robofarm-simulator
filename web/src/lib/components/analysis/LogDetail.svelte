@@ -55,18 +55,6 @@
                 <span class="text-gray-500">走行速度:</span>
                 <span>{log.data.robot.settings.speed} m/s</span>
               </div>
-              <div class="grid grid-cols-2">
-                <span class="text-gray-500">バッテリー残量:</span>
-                <span>{log.data.robot.settings.batteryLevel} %</span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="text-gray-500">タイヤ回転数:</span>
-                <span>{log.data.robot.settings.tireRotation} rpm</span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="text-gray-500">障害物検知:</span>
-                <span>{log.data.robot.settings.obstacleDetected ? 'あり' : 'なし'}</span>
-              </div>
               <div class="mt-1 border-t pt-1 opacity-60 grid grid-cols-2">
                 <span class="text-gray-400 italic">データ取得時刻:</span>
                 <span class="text-gray-400 italic">
@@ -116,57 +104,9 @@
             <span>🔍</span> 分析結果
           </h4>
           <div class="space-y-3 rounded border border-blue-100 bg-blue-50 p-3 text-xs">
-            <!-- Robot Analysis -->
-            <div class="space-y-1">
-              <div class="flex items-center justify-between">
-                <strong class="text-gray-700">🤖 ロボット分析:</strong>
-                <span
-                  class="border-b-2 font-bold"
-                  class:border-green-400={log.analysis.robot.health === 'healthy'}
-                  class:border-yellow-400={log.analysis.robot.health === 'warning'}
-                  class:border-red-400={log.analysis.robot.health === 'critical'}
-                >
-                  {getStatusText(log.analysis.robot.health)}
-                </span>
-              </div>
-              <p class="rounded bg-white/50 p-1 text-gray-600">診断: {log.analysis.robot.diagnosis}</p>
-              {#if log.analysis.robot.action && log.analysis.robot.action !== '-'}
-                <p class="rounded bg-white/50 p-1 text-gray-600">推奨アクション: {log.analysis.robot.action}</p>
-              {/if}
-            </div>
-
-            <!-- House Analysis -->
-            <div class="border-t border-blue-100 pt-2 space-y-1">
-              <div class="flex items-center justify-between">
-                <strong class="text-gray-700">🏠 ハウス分析:</strong>
-                <span
-                  class="border-b-2 font-bold"
-                  class:border-green-400={log.analysis.house.health === 'healthy'}
-                  class:border-yellow-400={log.analysis.house.health === 'warning'}
-                  class:border-red-400={log.analysis.house.health === 'critical'}
-                >
-                  {getStatusText(log.analysis.house.health)}
-                </span>
-              </div>
-              <p class="rounded bg-white/50 p-1 text-gray-600">診断: {log.analysis.house.diagnosis}</p>
-              {#if log.analysis.house.action && log.analysis.house.action !== '-'}
-                <p class="rounded bg-white/50 p-1 text-gray-600">推奨アクション: {log.analysis.house.action}</p>
-              {/if}
-            </div>
-
-            <!-- Overall System Health -->
-            <div class="border-t border-blue-200 pt-2">
-              <div class="flex items-center justify-between font-bold">
-                <span>システム健全性:</span>
-                <span
-                  class:text-green-600={log.analysis.system.health === 'healthy'}
-                  class:text-yellow-600={log.analysis.system.health === 'warning'}
-                  class:text-red-600={log.analysis.system.health === 'critical'}
-                >
-                  {getStatusText(log.analysis.system.health)}
-                </span>
-              </div>
-            </div>
+          <div class="space-y-3 rounded border border-blue-100 bg-blue-50 p-3 text-xs">
+            <p class="text-center text-gray-500 italic">健全性分析データは削除されました</p>
+          </div>
           </div>
         </div>
       {/if}

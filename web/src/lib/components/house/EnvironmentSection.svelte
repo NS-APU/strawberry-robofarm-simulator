@@ -1,10 +1,10 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { houseSettings } from '../../stores/houseStore';
 </script>
 
-<!-- 環境制御 Section -->
+<!-- 環境情報 Section -->
 <div class="control-section">
-  <h3 class="control-section-header">環境制御</h3>
+  <h3 class="control-section-header">環境情報</h3>
   <div class="space-y-3">
     <div>
       <label class="form-label" for="temperature">温度 (℃)</label>
@@ -79,7 +79,7 @@
           bind:value={$houseSettings.illuminance}
           style="--range-color: {
             $houseSettings.illuminance > 50000 || $houseSettings.illuminance < 10000 ? '#dc2626' : 
-            ($houseSettings.illuminance > 40000 && $houseSettings.illuminance <= 50000) || ($houseSettings.illuminance > 10000 && $houseSettings.illuminance < 20000) ? '#ca8a04' : '#2563eb'
+            ($houseSettings.illuminance > 40000 && $houseSettings.illuminance <= 50000) || ($houseSettings.illuminance >= 10000 && $houseSettings.illuminance < 20000) ? '#ca8a04' : '#2563eb'
           }; background: linear-gradient(to right, var(--range-color) 0%, var(--range-color) {$houseSettings.illuminance / 750}%, #e5e7eb {$houseSettings.illuminance / 750}%, #e5e7eb 100%); background-size: 100% 100%;"
         />
         <input 
@@ -128,5 +128,3 @@
     </div>
   </div>
 </div>
-
-
