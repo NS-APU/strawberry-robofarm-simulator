@@ -6,6 +6,15 @@
   export let metric: AnalysisMetricData;
   const label = "耐久性";
 
+  function getStatusLabel(code: string | undefined): string {
+    if (!code) return '-';
+    for (const group of Object.values(STATUS_CODES)) {
+      const found = group.find(s => s.code === code);
+      if (found) return found.label;
+    }
+    return code;
+  }
+
   $: statusText = STATUS_TEXT[metric.status] || '不明';
   $: statusClass = metric.status === 'healthy' 
     ? 'bg-green-100 text-green-700' 
@@ -108,8 +117,8 @@
           </div>
           <div>
             <span class="block text-xs text-gray-500">ステータス</span>
-            <p class="text-lg font-medium {STATUS_CODES.NORMAL.some(s => s.label === metric.statusLabel) ? 'text-gray-800' : 'text-orange-600'}">
-              {metric.statusLabel}
+            <p class="text-lg font-medium {STATUS_CODES.NORMAL.some(s => s.code === metric.statusCode) ? 'text-gray-800' : 'text-orange-600'}">
+              {getStatusLabel(metric.statusCode)}
             </p>
           </div>
         </div>

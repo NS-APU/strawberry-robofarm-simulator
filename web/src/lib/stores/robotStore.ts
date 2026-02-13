@@ -14,7 +14,6 @@ export interface PartFailureProbs {
 }
 
 export interface AnalysisMetricData {
-  score: number; // 0-1.0
   status: 'healthy' | 'warning' | 'critical' | 'unknown';
   diagnosis: string;
   action: string;

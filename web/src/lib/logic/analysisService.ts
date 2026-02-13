@@ -15,6 +15,18 @@ const getOrionEndpoint = () => {
 
 const ORION_ENDPOINT = getOrionEndpoint();
 
+// NGSI-LD 向けに評価項目名をマッピング
+const METRIC_KEY_MAP: Record<string, string> = {
+  harvestAccuracy: 'harvestAccuracy',
+  speed: 'speed',
+  adaptability: 'adaptability',
+  operability: 'operability',
+  maintainability: 'maintainability',
+  costEfficiency: 'costEfficiency',
+  safety: 'safety',
+  durability: 'durability',
+};
+
 export const STATUS_TEXT = {
   healthy: '正常',
   warning: '注意',
@@ -127,67 +139,84 @@ function convertToNGSILD(data: {
     },
   };
 
-  // Robot data
-  if (data.robot) {
-    ngsiEntity.robot = {
-      type: 'Property',
-      value: {
-        speed: data.robot.settings.speed,
-        pitch: data.robot.settings.pitch,
-        roll: data.robot.settings.roll,
-        yaw: data.robot.settings.yaw,
-        status: data.robot.settings.statusCode,
-        harvestOperatingDuration: data.robot.settings.harvestOperatingDuration,
-        totalOperatingDuration: data.robot.settings.totalOperatingDuration,
-        travelStopDuration: data.robot.settings.travelStopDuration,
-        harvestCount: data.robot.settings.harvestCount,
-        detectionCount: data.robot.settings.detectionCount,
-        processingTimePerFruit: data.robot.settings.processingTimePerFruit,
-        operationTime: data.robot.settings.operationTime,
-        operationSteps: data.robot.settings.operationSteps,
-        operationErrors: data.robot.settings.operationErrors,
-        failureCount: data.robot.settings.failureCount,
-        partFailureProbs: data.robot.settings.partFailureProbs,
-        riskDetectionCount: data.robot.settings.riskDetectionCount,
-        safetyActivationCount: data.robot.settings.safetyActivationCount,
-      },
-      observedAt: data.robot.timestamp,
-      speed_unitCode: { type: 'Property', value: 'MTS' },
-      pitch_unitCode: { type: 'Property', value: 'DD' },
-      roll_unitCode: { type: 'Property', value: 'DD' },
-      yaw_unitCode: { type: 'Property', value: 'DD' },
-      harvestOperatingDuration_unitCode: { type: 'Property', value: 'MIN' },
-      totalOperatingDuration_unitCode: { type: 'Property', value: 'MIN' },
-      travelStopDuration_unitCode: { type: 'Property', value: 'MIN' },
-      processingTimePerFruit_unitCode: { type: 'Property', value: 'SEC' },
-      operationTime_unitCode: { type: 'Property', value: 'MIN' },
-    };
-  }
-
-  // House data
-  if (data.house) {
-    ngsiEntity.house = {
-      type: 'Property',
-      value: {
-        temperature: data.house.settings.temperature,
-        relativeHumidity: data.house.settings.humidity,
-        illuminance: data.house.settings.illuminance,
-        co2: data.house.settings.co2,
-      },
-      observedAt: data.house.timestamp,
-      temperature_unitCode: { type: 'Property', value: 'CEL' },
-      relativeHumidity_unitCode: { type: 'Property', value: 'P1' },
-      illuminance_unitCode: { type: 'Property', value: 'LUX' },
-      co2_unitCode: { type: 'Property', value: '3P' },
-    };
-  }
+  // Robot and House data are excluded as per instructions (data/feedback data should not be included)
 
   // Analysis data
+  const analysisValue: any = {};
+  if (data.analysis.metrics) {
+    (Object.keys(data.analysis.metrics) as Array<keyof AnalysisMetrics>).forEach((key) => {
+      const metric = data.analysis.metrics![key];
+      if (metric) {
+        // メトリクス（率、効率、MTBF等）
+        const METRICS_KEYS = [
+          'uncertainCount',
+          'ambiguityRate',
+          'stopRate',
+          'operationErrorRate',
+          'mttr',
+          'dataUtilizationRate',
+          'mtbf',
+          'operationRate',
+          'falseHarvestRate',
+          'damageRate',
+          'leftBehindRate',
+          'marketableFruitRate',
+          'recognitionAccuracy',
+          'safetyMalfunctionRate',
+        ];
+
+        // データ（カウント数、時間、センサー値等）
+        const DATA_KEYS = [
+          'harvestCount',
+          'detectionCount',
+          'robotSpeed',
+          'processingTime',
+          'operatingTime',
+          'totalStopTime',
+          'travelStopTime',
+          'statusCode',
+          'yaw',
+          'pitch',
+          'roll',
+          'temperature',
+          'humidity',
+          'illuminance',
+          'co2',
+          'operationTime',
+          'operationSteps',
+          'operationErrors',
+          'failureCount',
+          'partFailureProbs',
+          'riskDetectionCount',
+          'safetyActivationCount',
+          'statusLabel',
+        ];
+
+        // フィードバックデータ
+        const FEEDBACK_KEYS = [
+          'falseHarvestCount',
+          'damageCount',
+          'leftBehindCount',
+          'repairTime',
+          'repairCount',
+          'downtime',
+        ];
+
+        analysisValue[METRIC_KEY_MAP[key] || key] = {
+          status: metric.status,
+          diagnosis: metric.diagnosis,
+          action: metric.action,
+          metrics: Object.fromEntries(Object.entries(metric).filter(([k]) => METRICS_KEYS.includes(k))),
+          data: Object.fromEntries(Object.entries(metric).filter(([k]) => DATA_KEYS.includes(k))),
+          feedbackData: Object.fromEntries(Object.entries(metric).filter(([k]) => FEEDBACK_KEYS.includes(k))),
+        };
+      }
+    });
+  }
+
   ngsiEntity.analysis = {
     type: 'Property',
-    value: {
-      // Health information removed
-    },
+    value: analysisValue,
     observedAt: data.analysis.timestamp,
   };
 
@@ -200,6 +229,63 @@ function convertToNGSILD(data: {
 
   return ngsiEntity;
 }
+
+// 小数点付きで送信すべきパラメータ（キー）のリスト
+const FLOAT_KEYS = [
+  'ambiguityRate',
+  'stopRate',
+  'operationErrorRate',
+  'partFailureRate',
+  'mttr',
+  'dataUtilizationRate',
+  'mtbf',
+  'operationRate',
+  'falseHarvestRate',
+  'damageRate',
+  'leftBehindRate',
+  'marketableFruitRate',
+  'recognitionAccuracy',
+  'safetyMalfunctionRate',
+  'temperature',
+  'humidity',
+  'co2',
+  'illuminance',
+  'yaw',
+  'pitch',
+  'roll',
+  'robotSpeed',
+  'processingTime',
+  'operatingTime',
+  'totalStopTime',
+  'travelStopTime',
+  'operationTime',
+  'repairTime',
+  'downtime',
+  // partFailureProbs の各項目
+  'arm',
+  'hand',
+  'camera',
+  'wheels',
+  'tray',
+  'communication',
+  'controlUnit',
+  'power',
+];
+
+/**
+ * 送信用JSONの数値を小数点付き（例: 1.0）にフォーマットする
+ */
+const formatNumericValuesWithDecimals = (jsonString: string): string => {
+  return jsonString.replace(/"([^"]+)"\s*:\s*(-?\d+(\.\d+)?)/g, (match, key, value) => {
+    if (FLOAT_KEYS.includes(key)) {
+      const numValue = parseFloat(value);
+      if (Number.isInteger(numValue)) {
+        return `"${key}": ${numValue.toFixed(1)}`;
+      }
+    }
+    return match;
+  });
+};
 
 /**
  * 農業情報基盤へデータを送信する (FIWARE/ORIONにNGSI-LD形式で送信)
@@ -214,12 +300,13 @@ export async function sendToAgriPlatform(data: {
 }): Promise<{ success: boolean; error?: string; mode: 'simulation' | 'real' }> {
   // Convert to NGSI-LD format
   const ngsiEntity = convertToNGSILD(data);
+  const jsonBody = formatNumericValuesWithDecimals(JSON.stringify([ngsiEntity], null, 2));
 
   // シミュレーションモード
   if (!SEND_ENABLE) {
     console.group('--- 農業情報基盤へのデータ送信 (シミュレーション) ---');
     console.info('送信モード: シミュレーション');
-    console.info('NGSI-LDデータ:', ngsiEntity);
+    console.info('NGSI-LDデータ (Raw JSON):\n', jsonBody);
     console.groupEnd();
     return { success: true, mode: 'simulation' };
   }
@@ -230,7 +317,7 @@ export async function sendToAgriPlatform(data: {
 
     console.group('--- 農業情報基盤へのデータ送信 (FIWARE/ORION) ---');
     console.info('送信先:', orionUrl);
-    console.info('NGSI-LDデータ:', ngsiEntity);
+    console.info('NGSI-LDデータ (Raw JSON):\n', jsonBody);
 
     const response = await fetch(orionUrl, {
       method: 'POST',
@@ -239,7 +326,7 @@ export async function sendToAgriPlatform(data: {
         'NGSILD-Tenant': 'agri_farm_robot_house',
         Accept: 'application/ld+json',
       },
-      body: JSON.stringify([ngsiEntity]), // upsert expects an array
+      body: jsonBody,
     });
 
     if (!response.ok) {
@@ -269,29 +356,16 @@ export function getSendMode(): { enabled: boolean; endpoint: string } {
 }
 
 function generateMetrics(robot?: RobotSettings, house?: HouseSettings): AnalysisMetrics {
-  const createMetric = (name: string, score: number, extra?: Partial<AnalysisMetricData>): AnalysisMetricData => {
-    let status: 'healthy' | 'warning' | 'critical' | 'unknown' = 'healthy';
-    let diagnosis = '良好です。';
-    let action = '現状を維持してください。';
-
-    if (score < 0.6) {
-      status = 'critical';
-      diagnosis = `${name}が低下しています（クリティカル）。`;
-      action = 'ただちに点検と調整を行ってください。';
-    } else if (score < 0.8) {
-      status = 'warning';
-      diagnosis = `${name}がやや低下しています。`;
-      action = '設定の見直しを推奨します。';
-    }
-
-    return { score, status, diagnosis, action, ...extra };
+  const createMetric = (name: string, extra?: Partial<AnalysisMetricData>): AnalysisMetricData => {
+    return {
+      status: 'healthy',
+      diagnosis: '良好です。',
+      action: '現状を維持してください。',
+      ...extra,
+    };
   };
 
-  // Generate random scores between 0.50 and 1.00 for demo purposes (wider range to show variance)
-  const r = () => parseFloat((0.5 + Math.random() * 0.5).toFixed(2));
-
   // Harvest Accuracy Calculation
-  let harvestScore = r();
   let harvestExtra: Partial<AnalysisMetricData> = {};
 
   if (robot) {
@@ -299,11 +373,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
     const harvest = robot.harvestCount || 0;
     const uncertain = detection - harvest;
     const ambiguity = detection > 0 ? (uncertain / detection) * 100 : 0;
-
-    // Score calculation based on ambiguity rate (inverse relationship)
-    // 0% ambiguity -> 1.0 score, 100% ambiguity -> 0.0 score
-    harvestScore = Math.max(0, Math.min(1, 1 - ambiguity / 100));
-    harvestScore = parseFloat(harvestScore.toFixed(2));
 
     // FY25対象外のため、ステータスを不明、診断と推奨アクションを「-」に設定
     const status: 'unknown' = 'unknown';
@@ -367,16 +436,11 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
 
   // Speed Data
   let speedExtra: Partial<AnalysisMetricData> = {};
-  let speedScore = r();
 
   if (robot) {
     const opDuration = robot.harvestOperatingDuration || 0;
     const stopDuration = robot.travelStopDuration || 0;
     const stopRate = opDuration > 0 ? (stopDuration / opDuration) * 100 : 0;
-
-    // Score calculation
-    speedScore = Math.max(0, Math.min(1, 1 - stopRate / 100));
-    speedScore = parseFloat(speedScore.toFixed(2));
 
     const status: 'healthy' | 'critical' | 'unknown' = stopRate >= 5 ? 'critical' : 'healthy';
     const diagnosis =
@@ -520,17 +584,11 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   // Operability Data
-  let operabilityScore = r();
   let operabilityExtra: Partial<AnalysisMetricData> = {};
   if (robot) {
     const opSteps = robot.operationSteps || 0;
     const opErrors = robot.operationErrors || 0;
     const errorRate = opSteps > 0 ? (opErrors / opSteps) * 100 : 0;
-
-    // Score calculation based on error rate (inverse relationship)
-    // 0% error -> 1.0 score, 50% error -> 0.0 score (stricter than ambiguity)
-    operabilityScore = Math.max(0, Math.min(1, 1 - errorRate / 50));
-    operabilityScore = parseFloat(operabilityScore.toFixed(2));
 
     const opTime = robot.operationTime || 0;
     const isErrorRateHigh = errorRate >= 5;
@@ -589,7 +647,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   // Maintainability Data
-  let maintainabilityScore = r();
   let maintainabilityExtra: Partial<AnalysisMetricData> = {};
   if (robot) {
     const failureCount = robot.failureCount || 0;
@@ -597,11 +654,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
     const probs = Object.values(robot.partFailureProbs);
     const maxPartFailureRate = probs.length > 0 ? Math.max(...probs) : 0;
     const mttr = failureCount > 0 ? stopTime / 60 / failureCount : 0;
-
-    // Score calculation (simple heuristic for demo)
-    // High failure count or high part failure rate reduces score
-    maintainabilityScore = Math.max(0, Math.min(1, 1 - (failureCount / 20 + maxPartFailureRate / 100) / 2));
-    maintainabilityScore = parseFloat(maintainabilityScore.toFixed(2));
 
     // 異常判定: MTTR 0.5時間以上 または いずれかの部位の予兆発生率10%以上
     const isMttrHigh = mttr >= 0.5;
@@ -674,7 +726,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   // Cost Efficiency Data
-  let costEfficiencyScore = r();
   let costEfficiencyExtra: Partial<AnalysisMetricData> = {};
   if (robot) {
     const harvest = robot.harvestCount || 0;
@@ -683,10 +734,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
 
     const utilizationRate = opDuration > 0 ? ((opDuration - stopDuration) / opDuration) * 100 : 0;
     const harvestEfficiency = opDuration > 0 ? (harvest / opDuration) * 60 : 0;
-
-    // Score calculation based on utilization (heuristic)
-    costEfficiencyScore = Math.max(0, Math.min(1, utilizationRate / 100));
-    costEfficiencyScore = parseFloat(costEfficiencyScore.toFixed(2));
 
     // FY25対象外のため、ステータスを不明、診断と推奨アクションを「-」に設定
     const status: 'unknown' = 'unknown';
@@ -713,7 +760,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   // Safety Data
-  let safetyScore = r();
   let safetyExtra: Partial<AnalysisMetricData> = {};
   if (robot) {
     const activation = robot.safetyActivationCount || 0;
@@ -723,11 +769,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
     const opSteps = robot.operationSteps || 0;
     const opErrors = robot.operationErrors || 0;
     const operationErrorRate = opSteps > 0 ? (opErrors / opSteps) * 100 : 0;
-
-    // Score calculation based on operation error rate (inverse relationship)
-    // 0% error -> 1.0 score, 50% error -> 0.0 score
-    safetyScore = Math.max(0, Math.min(1, 1 - operationErrorRate / 50));
-    safetyScore = parseFloat(safetyScore.toFixed(2));
 
     const status: 'healthy' | 'critical' | 'unknown' = operationErrorRate >= 3 ? 'critical' : 'healthy';
     const diagnosis =
@@ -757,7 +798,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   // Durability Data
-  let durabilityScore = r();
   let durabilityExtra: Partial<AnalysisMetricData> = {};
   if (robot) {
     const opDuration = robot.totalOperatingDuration || 0;
@@ -767,20 +807,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
     const opHours = opDuration / 60;
     const mtbf = failureCount > 0 ? opHours / failureCount : opHours;
     const operationRate = opDuration > 0 ? ((opDuration - stopDuration) / opDuration) * 100 : 0;
-
-    // Score calculation based on operation rate and failure count
-    durabilityScore = Math.max(0, Math.min(1, (operationRate / 100 + (1 - failureCount / 10)) / 2));
-    durabilityScore = parseFloat(durabilityScore.toFixed(2));
-
-    // Get status label
-    const allCodes = [
-      ...STATUS_CODES.NORMAL,
-      ...STATUS_CODES.RUNNING,
-      ...STATUS_CODES.HARVEST,
-      ...STATUS_CODES.BATTERY,
-    ];
-    const statusObj = allCodes.find((c) => c.code === robot.statusCode);
-    const statusLabel = statusObj ? statusObj.label : robot.statusCode;
 
     // ステータス判断 (MTBF < 9.5 または 稼働率 < 95% なら異常)
     const isMtbfCritical = mtbf < 9.5;
@@ -818,7 +844,7 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
       totalStopTime: stopDuration,
       processingTime: robot.processingTimePerFruit,
       robotSpeed: robot.speed,
-      statusLabel: statusLabel,
+      statusCode: robot.statusCode,
       mtbf: parseFloat(mtbf.toFixed(1)),
       operationRate: parseFloat(operationRate.toFixed(1)),
       repairTime: undefined,
@@ -847,9 +873,6 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   const unknownMetrics = otherMetrics.filter((m) => m.data.status === 'unknown');
   const isAllKnown = unknownMetrics.length === 0;
 
-  // Data Utilization score (1.0 if all known, 0.0 otherwise)
-  const dataUtilizationScore = isAllKnown ? 1.0 : 0.0;
-
   // Data Utilization status and messages
   const dataUtilizationStatus: 'healthy' | 'critical' = isAllKnown ? 'healthy' : 'critical';
 
@@ -866,20 +889,20 @@ function generateMetrics(robot?: RobotSettings, house?: HouseSettings): Analysis
   }
 
   return {
-    harvestAccuracy: createMetric('収穫精度', harvestScore, harvestExtra),
-    harvestSpeed: createMetric('収穫速度', speedScore, speedExtra),
-    adaptability: createMetric('環境適応性', r(), adaptabilityExtra),
-    operability: createMetric('操作性', operabilityScore, operabilityExtra),
-    maintainability: createMetric('メンテナンス性', maintainabilityScore, maintainabilityExtra),
-    costEfficiency: createMetric('コスト効率', costEfficiencyScore, costEfficiencyExtra),
-    safety: createMetric('安全性', safetyScore, safetyExtra),
-    dataUtilization: createMetric('データ活用', dataUtilizationScore, {
+    harvestAccuracy: createMetric('収穫精度', harvestExtra),
+    harvestSpeed: createMetric('収穫速度', speedExtra),
+    adaptability: createMetric('環境適応性', adaptabilityExtra),
+    operability: createMetric('操作性', operabilityExtra),
+    maintainability: createMetric('メンテナンス性', maintainabilityExtra),
+    costEfficiency: createMetric('コスト効率', costEfficiencyExtra),
+    safety: createMetric('安全性', safetyExtra),
+    dataUtilization: createMetric('データ活用', {
       status: dataUtilizationStatus,
       diagnosis: dataUtilizationDiagnosis,
       action: dataUtilizationAction,
     }),
-    durability: createMetric('耐久性', durabilityScore, durabilityExtra),
-    ethics: createMetric('倫理性', r(), {
+    durability: createMetric('耐久性', durabilityExtra),
+    ethics: createMetric('倫理性', {
       status: 'unknown',
       diagnosis: '-',
       action: '-',
