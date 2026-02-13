@@ -44,19 +44,22 @@
         analysis: $analysisResult.result,
       });
 
+      // Prepare log entry with success/error status
+      const logEntry: LogEntry = {
+        timestamp: new Date().toISOString(),
+        data: $analysisResult.data,
+        analysis: $analysisResult.result,
+        success: result.success,
+        error: result.error,
+      };
+
+      // Always add to log history
+      robotLogs.update((logs) => {
+        const newLogs = [logEntry, ...logs];
+        return newLogs.slice(0, 10);
+      });
+
       if (result.success) {
-        // Add to log
-        const logEntry: LogEntry = {
-          timestamp: new Date().toISOString(),
-          data: $analysisResult.data,
-          analysis: $analysisResult.result,
-        };
-
-        robotLogs.update((logs) => {
-          const newLogs = [logEntry, ...logs];
-          return newLogs.slice(0, 10);
-        });
-
         const modeText = result.mode === 'simulation' ? 'シミュレーション' : '農業情報基盤へ送信';
         sendStatus = { type: 'success', message: `送信成功 (${modeText})` };
       } else {

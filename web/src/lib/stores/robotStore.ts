@@ -126,6 +126,8 @@ export interface LogEntry {
     house?: { settings: HouseSettings; timestamp: string };
   } | null;
   analysis: AnalysisResultDetailed | null;
+  success?: boolean;
+  error?: string;
 }
 
 // ステータスコード定義
@@ -169,7 +171,7 @@ const initialState: RobotSettings = {
   yaw: 0,
   statusCode: 'S-01',
   harvestOperatingDuration: 60,
-  totalOperatingDuration: 60,
+  totalOperatingDuration: 600,
   travelStopDuration: 0,
   totalStopDuration: 0,
   harvestCount: 0,
